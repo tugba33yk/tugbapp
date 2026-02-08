@@ -1034,5 +1034,105 @@
             document.getElementById('contactForm').reset();
         }
     </script>
+
+    
+    <script>
+        // OAuth Callback Handler
+        (function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+
+            if (code || error) {
+                const overlay = document.getElementById('oauthOverlay');
+                const content = document.getElementById('oauthContent');
+
+                overlay.style.display = 'flex';
+                content.classList.add('active');
+
+                if (error) {
+                    // OAuth error
+                    content.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                            <h2 style="color: #c62828; margin-bottom: 15px; font-size: 24px;">Bağlantı Hatası</h2>
+                            <p style="color: #666; margin-bottom: 20px;">Etsy bağlantısı sırasında bir hata oluştu: <strong>${error}</strong></p>
+                            <p style="color: #666;">Lütfen extension'dan tekrar deneyin.</p>
+                            <button onclick="window.close()" style="margin-top: 30px; background: #5B21B6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;">
+                                Kapat
+                            </button>
+                        </div>
+                    `;
+                } else if (code) {
+                    // Success - show code
+                    content.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 20px; color: #28a745;">✅</div>
+                            <h2 style="color: #28a745; margin-bottom: 10px; font-size: 24px;">Etsy Bağlantısı Başarılı!</h2>
+                            <p style="color: #666; margin-bottom: 30px;">Aşağıdaki kodu kopyalayın</p>
+                            
+                            <div style="background: #2d3748; color: #68d391; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; word-break: break-all; margin-bottom: 20px; border: 2px solid #4a5568; user-select: all;">
+                                ${code}
+                            </div>
+                            
+                            <button id="copyBtn" onclick="copyOAuthCode()" style="background: #f56400; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: 600; margin-bottom: 15px;">
+                                📋 Kodu Kopyala
+                            </button>
+                            
+                            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2196f3; text-align: left; font-size: 14px; line-height: 1.6;">
+                                <p style="color: #1565c0; margin-bottom: 8px;"><strong>📌 Sonraki Adımlar:</strong></p>
+                                <p style="color: #1565c0; margin: 4px 0;">1. Extension popup'ını açın</p>
+                                <p style="color: #1565c0; margin: 4px 0;">2. OAuth sekmesine gidin</p>
+                                <p style="color: #1565c0; margin: 4px 0;">3. "OAuth Code" alanına yapıştırın</p>
+                                <p style="color: #1565c0; margin: 4px 0;">4. "✅ Bağlantıyı Tamamla" butonuna tıklayın</p>
+                            </div>
+                            
+                            <button onclick="window.close()" style="margin-top: 20px; background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer;">
+                                Pencereyi Kapat
+                            </button>
+                        </div>
+                    `;
+
+                    // Try to send code to extension via postMessage (if opened from extension)
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'ETSY_OAUTH_CODE',
+                            code: code,
+                            state: state
+                        }, '*');
+                    }
+
+                    // Auto-close after 30 seconds
+                    let countdown = 30;
+                    const timer = setInterval(() => {
+                        if (--countdown <= 0) {
+                            clearInterval(timer);
+                            window.close();
+                        }
+                    }, 1000);
+                }
+            }
+
+            // Copy function
+            window.copyOAuthCode = function () {
+                const code = urlParams.get('code');
+                const btn = document.getElementById('copyBtn');
+
+                navigator.clipboard.writeText(code).then(() => {
+                    btn.innerHTML = '✅ Kopyalandı!';
+                    btn.style.background = '#28a745';
+
+                    setTimeout(() => {
+                        btn.innerHTML = '📋 Kodu Kopyala';
+                        btn.style.background = '#f56400';
+                    }, 2000);
+                }).catch(() => {
+                    alert('Kopyalama başarısız. Lütfen manuel olarak kopyalayın.');
+                });
+            };
+        })();
+    </script>
+
 </body>
 </html>
