@@ -1036,6 +1036,15 @@
     </script>
 
     
+    <!-- OAuth Callback Overlay (Hidden by default, shown only when code is present) -->
+    <div id="oauthOverlay"
+        style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
+        <div id="oauthContent"
+            style="background: white; border-radius: 16px; padding: 40px; max-width: 600px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative;">
+            <!-- Content will be populated by JavaScript -->
+        </div>
+    </div>
+    
     <script>
         // OAuth Callback Handler
         (function () {
